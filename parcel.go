@@ -10,7 +10,7 @@ type ParcelStore struct {
 }
 
 func NewParcelStore(db *sql.DB) ParcelStore {
-	// Создаем таблицу parcel, если она не существует
+
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS parcel (
 			number INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,7 +27,7 @@ func NewParcelStore(db *sql.DB) ParcelStore {
 }
 
 func (s ParcelStore) Add(p Parcel) (int, error) {
-	// Добавление новой посылки в таблицу parcel
+
 	result, err := s.db.Exec(`
 		INSERT INTO parcel (client, status, address, created_at)
 		VALUES (?, ?, ?, ?)`,
@@ -36,7 +36,6 @@ func (s ParcelStore) Add(p Parcel) (int, error) {
 		return 0, err
 	}
 
-	// Получение идентификатора последней добавленной записи
 	id, err := result.LastInsertId()
 	if err != nil {
 		return 0, err
@@ -46,7 +45,7 @@ func (s ParcelStore) Add(p Parcel) (int, error) {
 }
 
 func (s ParcelStore) Get(number int) (Parcel, error) {
-	// Чтение посылки по номеру
+
 	p := Parcel{}
 	row := s.db.QueryRow(`
 		SELECT number, client, status, address, created_at
@@ -64,7 +63,7 @@ func (s ParcelStore) Get(number int) (Parcel, error) {
 }
 
 func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
-	// Чтение всех посылок клиента
+
 	rows, err := s.db.Query(`
 		SELECT number, client, status, address, created_at
 		FROM parcel
@@ -87,7 +86,7 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 }
 
 func (s ParcelStore) SetStatus(number int, status string) error {
-	// Обновление статуса посылки
+
 	_, err := s.db.Exec(`
 		UPDATE parcel
 		SET status = ?
@@ -96,7 +95,7 @@ func (s ParcelStore) SetStatus(number int, status string) error {
 }
 
 func (s ParcelStore) SetAddress(number int, address string) error {
-	// Проверка статуса посылки
+
 	p, err := s.Get(number)
 	if err != nil {
 		return err
@@ -105,7 +104,6 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 		return errors.New("can only change address for registered parcels")
 	}
 
-	// Обновление адреса
 	_, err = s.db.Exec(`
 		UPDATE parcel
 		SET address = ?
@@ -114,7 +112,7 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 }
 
 func (s ParcelStore) Delete(number int) error {
-	// Проверка статуса посылки
+
 	p, err := s.Get(number)
 	if err != nil {
 		return err
@@ -123,7 +121,6 @@ func (s ParcelStore) Delete(number int) error {
 		return errors.New("can only delete registered parcels")
 	}
 
-	// Удаление посылки
 	_, err = s.db.Exec(`
 		DELETE FROM parcel
 		WHERE number = ?`, number)
